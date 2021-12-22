@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:climate/searchscreen.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(const MyApp());
 
@@ -25,9 +28,34 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+String API_key = "105dab5f56560a6f3f0307cd41875960";
+String temp = '0';
+String humidity = '0';
+String maxTemp = '0';
+String minTemp = '0';
+String cityName = 'Delhi';
+
+Future<void> callApi() async {
+  print('Data api call is being done');
+  var response = await http.get(
+    Uri.parse(
+      'https.//api.openweathermap.org/data/2.5/weather?q=Delhi&appid=$API_key&units=metric0'),
+  );
+  print(response.body);
+  var weatherData = jsonDecode(response.body);
+  print(weatherData['main']['temp']);
+  temp = weatherData['main']['temp'].toString();
+  humidity = weatherData['main']['humidity'].toString();
+  maxTemp = weatherData['main']['temp_max'].toString();
+  minTemp = weatherData['main']['temp_min'].toString();
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context){
+    setState(() {
+      callApi();
+    });
     return Scaffold(
       backgroundColor: Colors.blue,
       appBar: AppBar(
@@ -38,7 +66,13 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.search),
-            onPressed: () {},
+            onPressed: () async{
+              var city = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SearchScreen()),
+              );
+              print(city);
+            },
           ),
         ],
       ),
@@ -47,14 +81,14 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '19°   ',
+              '$temp°   ',
               style: TextStyle(
                 fontSize: 100,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
+            const Text(
               ' C ',
               style: TextStyle(
                 fontSize: 100,
@@ -66,18 +100,20 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 30,
             ),
             Text(
-              "Delhi",
+              cityName.toUpperCase(),
               style: TextStyle(
-                fontSize: 30,
+                fontSize: 40,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 3,
               ),
             ),
             Container(
-              height: 50,
+              height: 70,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Column(
                   children: [
@@ -90,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     Text(
-                      'Humid',
+                      'Humidity = $humidity %',
                       style: TextStyle(
                         fontSize: 30,
                         color: Colors.white,
@@ -101,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Column(children: [
                   Text(
-                    'Max = 23',
+                    'Max = $maxTemp°C',
                     style: TextStyle(
                       fontSize: 30,
                       color: Colors.white,
@@ -109,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   Text(
-                    'Min = 12',
+                    'Min = $minTemp°C',
                     style: TextStyle(
                       fontSize: 30,
                       color: Colors.white,
